@@ -1,3 +1,14 @@
+DO $$
+BEGIN
+	RAISE NOTICE '===========================';
+	RAISE NOTICE '  02-authenticty-init.sql  ';
+	RAISE NOTICE '===========================';
+END ;
+$$ LANGUAGE PLPGSQL;
+
+
+SELECT pg_reload_conf();
+
 CREATE ROLE skltn LOGIN NOINHERIT;
 CREATE ROLE everyman LOGIN NOINHERIT;
 ALTER ROLE skltn PASSWORD '_dot_skltn';
@@ -5,8 +16,9 @@ GRANT everyman TO skltn;
 CREATE DATABASE skltn OWNER skltn;
 GRANT ALL PRIVILEGES ON DATABASE skltn TO skltn;
 
-\c skltn
 
+\c skltn
+CREATE EXTENSION adminpack;
 CREATE EXTENSION pg_cron;
 CREATE EXTENSION postgres_fdw;
 CREATE EXTENSION file_fdw;
@@ -134,17 +146,9 @@ GRANT USAGE ON SCHEMA authenticity TO skltn;
 
 GRANT ALL ON TABLE authenticity.users TO skltn;
 
+-- Adding a user based on variables from the .env file
 SELECT api.signup(current_setting('skltn.api_user'), current_setting('skltn.api_password'));
 
 
-CREATE TABLE api.🐘( fid bigint GENERATED ALWAYS AS IDENTITY, nomenclature text);
-GRANT SELECT ON api.🐘 TO everyman;
-
-CREATE VIEW api.available_extensions AS SELECT * FROM pg_available_extensions ORDER BY 1;
-GRANT SELECT ON api.available_extensions TO everyman;
 
 
-SELECT inet_server_port();
-SELECT current_setting('port');
-INSERT INTO cron.job (schedule, command, nodeport) VALUES 
-	('* * * * *',$$INSERT INTO api.🐘 (nomenclature) VALUES (repeat('🐘',(random()*10)::int));$$,55559);
